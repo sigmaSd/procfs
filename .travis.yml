@@ -12,6 +12,8 @@ script:
   - env RUST_BACKTRACE=1 cargo test --verbose --all --no-default-features
   - env RUST_BACKTRACE=1 cargo test -p --manifest-path procfs-tests/Cargo.toml -p procfs-tests
   - cargo doc --all-features
+  - rustup target install x86_64-pc-windows-gnu
+  - cargo check --target=x86_64-pc-windows-gnu
 
 jobs:
   include:
