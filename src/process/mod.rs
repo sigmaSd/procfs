@@ -54,12 +54,12 @@
 
 use super::*;
 use crate::from_iter;
-
+use std::convert::TryFrom;
 use std::ffi::OsString;
 use std::fs;
 use std::io::{self, Read};
-#[cfg(unix)]
-use std::os::linux::fs::MetadataExt;
+#[cfg(linux)]
+use std::os::unix::fs::MetadataExt;
 use std::path::PathBuf;
 use std::str::FromStr;
 
@@ -89,6 +89,9 @@ impl FakeMedatadataExt for std::fs::Metadata {
         panic!()
     }
 }
+
+#[cfg(target_os = "android")]
+use std::os::android::fs::MetadataExt;
 
 bitflags! {
     /// Kernel flags for a process
@@ -179,9 +182,9 @@ bitflags! {
 bitflags! {
     /// The mode (read/write permissions) for an open file descriptor
     pub struct FDPermissions: u32 {
-        const READ = libc::S_IRUSR;
-        const WRITE = libc::S_IWUSR;
-        const EXECUTE = libc::S_IXUSR;
+        const READ = libc::S_IRUSR as u32;
+        const WRITE = libc::S_IWUSR as u32;
+        const EXECUTE = libc::S_IXUSR as u32;
     }
 }
 
@@ -760,7 +763,7 @@ impl Process {
                 let link_os: &OsStr = link.as_ref();
                 vec.push(FDInfo {
                     fd,
-                    mode: md.st_mode() & libc::S_IRWXU,
+                    mode: md.st_mode() & u32::try_from(libc::S_IRWXU).unwrap(),
                     target: expect!(FDTarget::from_str(expect!(link_os.to_str()))),
                 });
             }
